@@ -16,7 +16,7 @@
 
 | 功能 | Spec | 状态 | 验证入口 |
 | --- | --- | --- | --- |
-| 本地 3D 仿真 | [路径执行与回放](2026-11-24-本地仿真-路径执行与回放.md) | SIM-001 至 SIM-005 为 `implemented`。SIM-006 为 `partial` | `node --test sim/smoke.test.mjs`、CLI、HTTP 与浏览器验收表 |
+| 本地 3D 仿真 | [路径执行与回放](2026-11-24-本地仿真-路径执行与回放.md) | SIM-001 至 SIM-005 为 `implemented`。SIM-006 为 `partial` | `node --test sim/smoke.test.mjs`、[HTTP 验收](../relations/README.md#http-验收)、[浏览器验收](../relations/README.md#浏览器验收) |
 | 原版 ARGoS | [实验启动与统计](2026-11-24-argos-实验启动与统计.md) | ARGOS-001 为 `partial` | Python 配置生成与 [Ubuntu 样例命令](2026-11-24-argos-实验启动与统计.md#验收条件) |
 
 变更行为时同步更新条目、状态和验收条件。尚待确认的运行范围见 [已知缺口](known-gaps.md)。

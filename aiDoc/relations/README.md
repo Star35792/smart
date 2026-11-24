@@ -27,3 +27,59 @@ SMART 消费已有 MAPF 路径，通过动作依赖图（ADG）协调多机器�
 | 构建原版 ARGoS | `git submodule update --init`、`cmake -S . -B build`、`cmake --build build --parallel` | 需要完整的原版工具链。目标产物包括 `build/server/ADG_server` 和 Foot-bot 控制器插件 |
 | 运行原版 ARGoS | 使用 [原版样例命令](../specs/2026-11-24-argos-实验启动与统计.md#验收条件) | 需要上一步产物和 `argos3`。脚本默认生成 `output.argos`，服务成功保存时会追加 `stats.csv` |
 | 构建和发布项目网站 | 在 Bash 中运行 `python -m pip install -r docs/requirements.txt` 和 `DOCS_DEV=1 CI=1 bash docs/build_docs.sh` | 预期生成 `docs/build/html/index.html`。[Pages 工作流](../../.github/workflows/docs.yml) 响应 `master` 上的网站或工作流改动，也支持手动触发 |
+
+## 按改动选择验收
+
+| 改动 | 优先验证 |
+| --- | --- |
+| 路径解析、坐标顺序、动作依赖或物理 | 运行 `node --test sim/smoke.test.mjs`。涉及大量机器人时再运行 1,000 台仓库样例 |
+| 命令行参数、退出状态或导出 | 按 [SIM-004](../specs/2026-11-24-本地仿真-路径执行与回放.md#sim-004-cli-退出状态与回放文件) 核对退出码和回放文件 |
+| 服务启动、HTTP 或场景导入 | 运行下方 [HTTP 验收](#http-验收)。涉及文件选择时再按浏览器步骤验证 |
+| 3D 渲染、回放控件、事件或导出 | 在支持 WebGL 2 的浏览器完成 [浏览器验收](#浏览器验收) |
+| ARGoS 启动、RPC 或统计 | 按 [ARGOS-001](../specs/2026-11-24-argos-实验启动与统计.md#argos-001-样例实验与结果) 运行对应样例 |
+
+## HTTP 验收
+
+先在仓库根目录运行 `node sim/server.mjs`。以下命令使用 PowerShell 7。若服务通过 `--port` 启动，修改 `$baseUrl` 的端口。
+
+```powershell
+$baseUrl = 'http://127.0.0.1:8765'
+Invoke-RestMethod "$baseUrl/healthz"
+
+$sample = Invoke-RestMethod "$baseUrl/api/simulate" -Method Post -ContentType 'application/json' -Body '{"example":"random","agents":2}'
+$sample.version
+$sample.stats | Select-Object outcome, finished
+
+$invalid = Invoke-WebRequest "$baseUrl/api/simulate" -Method Post -ContentType 'application/json' -Body '{"example":"random","agents":0}' -SkipHttpErrorCheck
+$invalid.StatusCode
+($invalid.Content | ConvertFrom-Json).error
+```
+
+健康端点应返回 `ready=True`。随机样例回放版本为 1，`outcome` 为 `completed`，`finished` 为 2。非法数量应返回 HTTP 400 和包含“机器人数量”的错误信息。
+
+### 自定义场景请求
+
+以下样例的地图宽 3 格、高 2 格。场景文件使用 XY，路径使用 YX。运行后 `finished` 应为 1，返回的目标坐标应为 `2,1`。
+
+```powershell
+$custom = @{
+    example  = 'custom'
+    agents   = 1
+    order    = 'yx'
+    map      = ('type octile', 'height 2', 'width 3', 'map', '...', '...' -join "`n")
+    scenario = ('version 1', '0 local.map 3 2 0 1 2 1 2' -join "`n")
+    paths    = 'Agent 0:(1,0)->(1,1)->(1,2)'
+} | ConvertTo-Json -Compress
+$trace = Invoke-RestMethod "$baseUrl/api/simulate" -Method Post -ContentType 'application/json' -Body $custom
+$trace.stats | Select-Object outcome, finished
+$trace.robots[0].goal -join ','
+```
+
+## 浏览器验收
+
+1. 在支持 WebGL 2 的浏览器打开 `http://127.0.0.1:8765/`。等待随机障碍场景加载完成，将回放时间轴移到末帧，可以按 `End` 键。确认已到达 `50/50`，点“俯视”后能看到地图及机器人。
+2. 将机器人数量设为 `2`，展开“外力扰动”，勾选“对一台机器人施加冲量”。机器人填 `0`，触发时刻填 `1`，X 冲量填 `4`，Y 冲量填 `0`，点击“运行仿真”。
+3. 展开“物理事件记录”，点击“外力冲量 · #0”旁的 `1.00 s`。确认回放暂停在 `1.0 s` 并选中机器人 0。点击“导出 JSON”，检查 `version`、`robots[].route`、`frames`、`events` 和 `stats.finished`。
+4. 取消外力，选择“导入自定义场景”。直接运行应提示需要三份文件。随后从 [命令行导入示例](../../sim/README.md#命令行运行) 选取对应的地图、场景和 YX 路径文件，坐标顺序选 YX，数量设为 `2`。运行后，场景标题应为“自定义场景”，末帧到达数应为 `2/2`。
+
+已实测的浏览器步骤和当前覆盖范围见 [SIM-006](../specs/2026-11-24-本地仿真-路径执行与回放.md#sim-006-浏览器回放)。
