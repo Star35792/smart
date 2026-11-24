@@ -11,6 +11,16 @@
 SMART is an efficient soft-tool that bridge the gap between Multi-Agent Path Finding (MAPF) and real-world application. More details can be found in our paper:
 Advancing MAPF towards the Real World: A Scalable Multi-Agent Realistic Testbed (SMART) [1].
 
+## Project layout
+
+| Directory | Contents |
+| --- | --- |
+| `sim/` | Local 3D simulator, replay UI and smoke tests |
+| `client/` | ARGoS controllers and experiments |
+| `server/` | C++ action dependency graph (ADG) server |
+| `examples/` | Maps, scenarios and paths grouped into `empty/`, `random/` and `warehouse/`, plus an image in `map-preview/` |
+| `scripts/` | ARGoS launcher and configuration generator, plus `create_map.py` to regenerate the map preview |
+| `docs/` | Documentation source |
 
 ## Local 3D simulation
 
@@ -52,20 +62,22 @@ cd ..
 
 ## Running guide for entire pipeline
 
+Run these commands from the repository root.
+
 ### Running with visualization
 ```
-python run_sim.py --map_name=random-32-32-20.map --scen_name=random-32-32-20-random-1.scen --num_agents=50 --path_filename=example_paths_xy.txt --flip_coord=0
+python scripts/run_sim.py --map_name=examples/random/random-32-32-20.map --scen_name=examples/random/random-32-32-20-random-1.scen --num_agents=50 --path_filename=examples/random/example_paths_xy.txt --flip_coord=0
 ```
 ```
-python run_sim.py --map_name=random-32-32-20.map --scen_name=random-32-32-20-random-1.scen --num_agents=50 --path_filename=example_paths_yx.txt --flip_coord=1
+python scripts/run_sim.py --map_name=examples/random/random-32-32-20.map --scen_name=examples/random/random-32-32-20-random-1.scen --num_agents=50 --path_filename=examples/random/example_paths_yx.txt --flip_coord=1
 ```
 
 ### Running in headless mode
 ```
-python run_sim.py --map_name=random-32-32-20.map --scen_name=random-32-32-20-random-1.scen --num_agents=50 --path_filename=example_paths_xy.txt --flip_coord=0 --headless=True
+python scripts/run_sim.py --map_name=examples/random/random-32-32-20.map --scen_name=examples/random/random-32-32-20-random-1.scen --num_agents=50 --path_filename=examples/random/example_paths_xy.txt --flip_coord=0 --headless=True
 ```
 ```
-python run_sim.py --map_name=random-32-32-20.map --scen_name=random-32-32-20-random-1.scen --num_agents=50 --path_filename=example_paths_yx.txt --flip_coord=1 --headless=True
+python scripts/run_sim.py --map_name=examples/random/random-32-32-20.map --scen_name=examples/random/random-32-32-20-random-1.scen --num_agents=50 --path_filename=examples/random/example_paths_yx.txt --flip_coord=1 --headless=True
 ```
 
 

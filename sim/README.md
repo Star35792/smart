@@ -31,7 +31,7 @@ docker run --rm -p 127.0.0.1:8765:8765 smart-3d
 
 ```sh
 node sim/server.mjs run --example warehouse --agents 1000 --output warehouse-trace.json
-node sim/server.mjs run --map random-32-32-20.map --scenario random-32-32-20-random-1.scen --paths example_paths_yx.txt --order yx --agents 50
+node sim/server.mjs run --map examples/random/random-32-32-20.map --scenario examples/random/random-32-32-20-random-1.scen --paths examples/random/example_paths_yx.txt --order yx --agents 50
 node sim/server.mjs --help
 node --test sim/smoke.test.mjs
 ```

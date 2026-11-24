@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -37,4 +39,4 @@ plt.tight_layout()
 
 # Show the map
 # plt.show()
-plt.savefig("2d-map.png")
+plt.savefig(Path(__file__).resolve().parents[1] / "examples" / "map-preview" / "2d-map.png")

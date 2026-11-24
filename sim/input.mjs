@@ -1,9 +1,24 @@
 import { readFile } from 'node:fs/promises';
 
 export const obstacleTiles = '@OTWS#';
+const examplesDir = new URL('../examples/', import.meta.url);
 export const examples = {
-  random: { title: '随机障碍', map: 'random-32-32-20.map', scenario: 'random-32-32-20-random-1.scen', paths: 'example_paths_xy.txt', order: 'xy', agents: 50 },
-  warehouse: { title: '大型仓库', map: 'warehouse-10-20-10-2-1.map', scenario: 'warehouse-10-20-10-2-1-random-1.scen', paths: 'scen_1_1000_paths.txt', order: 'yx', agents: 1000 },
+  random: {
+    title: '随机障碍',
+    map: 'random/random-32-32-20.map',
+    scenario: 'random/random-32-32-20-random-1.scen',
+    paths: 'random/example_paths_xy.txt',
+    order: 'xy',
+    agents: 50,
+  },
+  warehouse: {
+    title: '大型仓库',
+    map: 'warehouse/warehouse-10-20-10-2-1.map',
+    scenario: 'warehouse/warehouse-10-20-10-2-1-random-1.scen',
+    paths: 'warehouse/scen_1_1000_paths.txt',
+    order: 'yx',
+    agents: 1000,
+  },
 };
 
 export class InputError extends Error {}
@@ -98,7 +113,7 @@ export async function loadInput(request) {
     maxSeconds: numeric(request.maxSeconds, example === examples.warehouse ? 600 : 300, 1, 600, '仿真时限'),
   };
   const files = example ? await Promise.all([example.map, example.scenario, example.paths].map((name) =>
-    readFile(new URL(`../${name}`, import.meta.url), 'utf8'))) : [request.map, request.scenario, request.paths];
+    readFile(new URL(name, examplesDir), 'utf8'))) : [request.map, request.scenario, request.paths];
   if (files.some((text) => typeof text !== 'string')) throw new InputError('请上传地图、场景和路径三个文件。');
   const map = parseMap(files[0]);
   const robots = parsePaths(files[2], files[1], map, agents, order);

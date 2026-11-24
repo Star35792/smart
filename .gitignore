@@ -13,7 +13,7 @@ server_output/*
 build/
 ! server_output/.gitkeep
 .cache/
-ArgosConfig/__pycache__
+__pycache__/
 output.argos
 outputPath.txt
 stats.csv

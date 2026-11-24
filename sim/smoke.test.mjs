@@ -5,7 +5,7 @@ import { buildGraph } from './adg.mjs';
 import { loadInput, InputError } from './input.mjs';
 import { simulate } from './physics.mjs';
 
-const fixture = (name) => readFile(new URL(`../${name}`, import.meta.url), 'utf8');
+const fixture = (name) => readFile(new URL(`../examples/random/${name}`, import.meta.url), 'utf8');
 const same = (a, b) => a.every((value, index) => value === b[index]);
 
 function customMap(row, starts) {

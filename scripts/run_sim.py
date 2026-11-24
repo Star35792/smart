@@ -1,9 +1,10 @@
 import os
 import argparse
-import ArgosConfig
 import subprocess
 import time
 import xml.etree.ElementTree as ET
+
+from argos_config import create_Argos, parse_map_file, read_scen
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Argument parser for map_name and scen_name.")
@@ -101,12 +102,12 @@ if __name__ == "__main__":
         exit(-1)
 
     print("Creating Argos config file ...")
-    robot_init_pos, scen_num_agent = ArgosConfig.read_scen(scen_file_path)
-    map_data, width, height = ArgosConfig.parse_map_file(map_file_path)
+    robot_init_pos, scen_num_agent = read_scen(scen_file_path)
+    map_data, width, height = parse_map_file(map_file_path)
     if scen_num_agent < curr_num_agent:
         print("Number of agents exceed maximum number. exiting ...")
         exit(-1)
-    ArgosConfig.create_Argos(map_data, config_filename, width, height, robot_init_pos, curr_num_agent, port_num, not args.headless)
+    create_Argos(map_data, config_filename, width, height, robot_init_pos, curr_num_agent, port_num, not args.headless)
     print("Argos config file created.")
 
     sim_dt = get_sim_dt_from_argos_config(config_filename)
