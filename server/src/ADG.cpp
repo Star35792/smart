@@ -22,7 +22,9 @@ ADG::ADG(const std::vector<std::vector<Action>>& plans) {
     }
 
     for (int i = 0; i < plans.size(); i++) {
-        adg_stats.type1EdgeCount += static_cast<int>(plans[i].size()) - 1;
+        if (!plans[i].empty()) {
+            adg_stats.type1EdgeCount += static_cast<int>(plans[i].size()) - 1;
+        }
         adg_stats.totalNodes += static_cast<int>(plans[i].size());
         bool consecutive_move = false;
         for (int j = 0; j < plans[i].size(); j++) {

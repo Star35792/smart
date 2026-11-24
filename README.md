@@ -12,7 +12,11 @@ SMART is an efficient soft-tool that bridge the gap between Multi-Agent Path Fin
 Advancing MAPF towards the Real World: A Scalable Multi-Agent Realistic Testbed (SMART) [1].
 
 
-## Requirements
+## Local 3D simulation
+
+Run `node sim/server.mjs` with Node.js 22+ and open `http://127.0.0.1:8765/`. On Windows you can double-click `start-smart.cmd`. The local simulator runs SMART's action dependencies in JavaScript, uses Rapier for rigid-body physics, and provides a Three.js replay UI. See the [local simulator guide](sim/README.md) for scenario imports, CLI usage and Docker.
+
+## Original ARGoS simulator requirements
 
 ### Ubuntu 22.04
 

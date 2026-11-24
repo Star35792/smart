@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>SMART · 3D 仿真</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="importmap">{"imports":{"three":"/vendor/three/build/three.module.js"}}</script>
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="identity"><span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>SMART <small>3D 仿真</small></span></div>
+    <div class="local"><i></i> 本地运行 <span>Rapier 3D</span></div>
+  </header>
+  <main>
+    <aside class="settings">
+      <form id="setup">
+        <h1>场景设置</h1>
+        <label for="example">场景</label>
+        <select id="example"><option value="random">随机障碍 · 32 × 32</option><option value="warehouse">大型仓库 · 161 × 63</option><option value="custom">导入自定义场景</option></select>
+        <div id="files" hidden>
+          <label for="map-file">地图 (.map)</label><input type="file" id="map-file" accept=".map,.txt">
+          <label for="scene-file">场景 (.scen)</label><input type="file" id="scene-file" accept=".scen,.txt">
+          <label for="path-file">路径 (.txt)</label><input type="file" id="path-file" accept=".txt">
+          <label for="order">路径坐标顺序</label><select id="order"><option value="xy">XY</option><option value="yx">YX</option></select>
+        </div>
+        <label for="agents">机器人数量 <span id="agent-range">1–50</span></label>
+        <input type="number" id="agents" value="50" min="1" max="50" step="1" required>
+        <details>
+          <summary>物理参数</summary>
+          <div class="form-grid">
+            <label>最高速度 (m/s)<input type="number" id="speed" value="2.5" min="0.15" max="4" step="any" required></label>
+            <label>最大加速度 (m/s²)<input type="number" id="acceleration" value="3" min="0.3" max="10" step="any" required></label>
+            <label>最高转速 (rad/s)<input type="number" id="rotation" value="3" min="0.5" max="8" step="any" required></label>
+            <label>地面摩擦系数<input type="number" id="friction" value="0.12" min="0" max="1" step="any" required></label>
+          </div>
+          <label for="max-seconds">仿真时限 (s)</label><input type="number" id="max-seconds" value="300" min="1" max="600" step="any" required>
+        </details>
+        <details>
+          <summary>外力扰动</summary>
+          <label class="toggle"><input type="checkbox" id="apply-push"> 对一台机器人施加冲量</label>
+          <div id="push-fields" class="form-grid" hidden>
+            <label>机器人编号<input type="number" id="push-robot" value="0" min="0" max="49" step="1"></label>
+            <label>触发时刻 (s)<input type="number" id="push-time" value="1" min="0" step="any"></label>
+            <label>X 冲量 (N·s)<input type="number" id="push-x" value="4" min="-30" max="30" step="any"></label>
+            <label>Y 冲量 (N·s)<input type="number" id="push-z" value="0" min="-30" max="30" step="any"></label>
+          </div>
+        </details>
+        <div class="action-row"><button type="submit" class="primary" id="run">运行仿真</button><button type="button" id="cancel" hidden>取消</button></div>
+        <p id="message" role="status" aria-live="polite"></p>
+      </form>
+      <section class="inspection">
+        <h2>机器人跟踪</h2>
+        <label class="sr-only" for="robot">选择机器人</label><select id="robot" disabled><option value="">选择机器人</option></select>
+        <div id="robot-info" class="muted">也可以点击场景中的机器人。</div>
+        <label class="toggle"><input type="checkbox" id="show-route" checked> 显示所选路径</label>
+        <label class="toggle"><input type="checkbox" id="show-goals" checked> 显示目标点</label>
+      </section>
+    </aside>
+    <section class="workspace" aria-label="仿真工作区">
+      <div class="viewport" id="viewport">
+        <div class="scene-head"><div><h2 id="scene-title">仿真场景</h2><span id="scene-meta">正在载入</span></div><div class="view-actions"><button id="top" type="button">俯视</button><button id="reset-view" type="button">重置视角</button></div></div>
+        <div id="render-target" aria-label="3D 仿真视图"></div>
+        <div class="scene-foot"><div class="legend"><span><i class="moving"></i>移动</span><span><i class="turning"></i>转向</span><span><i class="waiting"></i>等待</span><span><i class="finished"></i>到达</span></div><span class="gestures">拖动旋转 · 滚轮缩放 · 右键平移</span></div>
+      </div>
+      <div class="playback">
+        <button type="button" id="play" class="play" disabled aria-label="播放">▶</button>
+        <output id="clock" for="timeline">0.0 / 0.0 s</output>
+        <input type="range" id="timeline" aria-label="回放时间" min="0" max="1" step="0.01" value="0" disabled>
+        <label class="sr-only" for="rate">播放速度</label><select id="rate"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option></select>
+        <button type="button" id="export" disabled>导出 JSON</button>
+      </div>
+      <div class="metrics" aria-label="仿真统计">
+        <div><span>已到达</span><strong id="stat-finished">—</strong></div>
+        <div><span>已执行动作</span><strong id="stat-actions">—</strong></div>
+        <div><span>跨机器人依赖</span><strong id="stat-edges">—</strong></div>
+        <div><span>机器人接触</span><strong id="stat-robots">—</strong></div>
+        <div><span>障碍物接触</span><strong id="stat-walls">—</strong></div>
+      </div>
+      <details class="events"><summary>物理事件记录</summary><div id="event-list" class="muted">仿真完成后可按时间查看接触和外力事件。</div></details>
+    </section>
+  </main>
+</body>
+</html>

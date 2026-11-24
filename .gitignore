@@ -17,3 +17,4 @@ ArgosConfig/__pycache__
 output.argos
 outputPath.txt
 stats.csv
+!/sim/vendor/three/build/
